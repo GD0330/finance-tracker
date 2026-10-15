@@ -22,6 +22,14 @@ function App()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
+  const [description, setDescription] = useState('')
+  const [amount, setAmount] = useState('')
+  const [type, setType] = useState<'INCOME' | 'EXPENSE'>('EXPENSE')
+  const [category, setCategory] = useState('FOOD')
+  const [date, setDate] = useState(new Date().toLocaleDateString('en-CA'))
+  const [saving, setSaving] = useState(false)
+  const [formError, setFormError] = useState('')
+  const [editingId, setEditingId] = useState<number | null>(null)
 
   useEffect(() => {
     async function loadTransactions() {
@@ -53,6 +61,100 @@ function App()
       .reduce((sum, t) => sum + t.amount, 0)
 
   const balance = totalIncome - totalExpenses
+
+  async function handleAddTransaction(e: React.SubmitEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setFormError('')
+    setSaving(true)
+
+    try {
+      const isEditing = editingId !== null
+
+      const url = isEditing
+          ? `/api/transactions/${editingId}`
+          : '/api/transactions'
+
+      const response = await fetch(url, {
+        method: isEditing ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          description,
+          amount: Number(amount),
+          type,
+          category,
+          date,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to save transaction')
+      }
+
+      const savedTransaction: Transaction = await response.json()
+
+      if (isEditing) {
+        setTransactions(previous =>
+            previous.map(transaction =>
+                transaction.id === editingId ? savedTransaction : transaction
+            )
+        )
+      } else {
+        setTransactions(previous => [...previous, savedTransaction])
+      }
+
+      setShowAddForm(false)
+      setEditingId(null)
+      setDescription('')
+      setAmount('')
+      setType('EXPENSE')
+      setCategory('FOOD')
+      setFormError('')
+    } catch {
+      setFormError('Could not save transaction. Please try again.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function handleDeleteTransaction(id: number) {
+    const confirmed = window.confirm(
+        'Are you sure you want to delete this transaction?'
+    )
+
+    if (!confirmed) return
+
+    try {
+      const response = await fetch(`/api/transactions/${id}`, {
+        method: 'DELETE',
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete transaction')
+      }
+
+      setTransactions(previous =>
+          previous.filter(transaction => transaction.id !== id)
+      )
+    } catch {
+      alert('Could not delete the transaction. Please try again.')
+    }
+  }
+
+  function handleEditClick(transaction: Transaction) {
+    setEditingId(transaction.id)
+
+    setDescription(transaction.description)
+    setAmount(String(transaction.amount))
+    setType(transaction.type)
+    setCategory(transaction.category)
+    setDate(transaction.date)
+
+    setFormError('')
+    setShowAddForm(true)
+  }
+
   return (
       <div className="app">
         <aside className="sidebar">
@@ -106,7 +208,16 @@ function App()
               </div>
               <button
                   className="add-button"
-                  onClick={() => setShowAddForm(true)}
+                  onClick={() => {
+                    setEditingId(null)
+                    setDescription('')
+                    setAmount('')
+                    setType('EXPENSE')
+                    setCategory('FOOD')
+                    setDate(new Date().toLocaleDateString('en-CA'))
+                    setFormError('')
+                    setShowAddForm(true)
+                  }}
               >
                 + Add transaction
               </button>
@@ -142,8 +253,18 @@ function App()
                         {money(transaction.amount)}
                       </td>
                       <td>
-                        <button className="action-button">Edit</button>
-                        <button className="action-button delete">Delete</button>
+                        <button
+                            className="action-button"
+                            onClick={() => handleEditClick(transaction)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                            className="action-button delete"
+                            onClick={() => handleDeleteTransaction(transaction.id)}
+                        >
+                          Delete
+                        </button>
                       </td>
                     </tr>
                 ))}
@@ -155,7 +276,7 @@ function App()
               <div className="modal-overlay">
                 <div className="modal">
                   <div className="modal-header">
-                    <h2>Add transaction</h2>
+                    <h2>{editingId !== null ? 'Edit transaction' : 'Add transaction'}</h2>
                     <button
                         className="close-button"
                         onClick={() => setShowAddForm(false)}
@@ -164,21 +285,38 @@ function App()
                     </button>
                   </div>
 
-                  <form onSubmit={(e) => e.preventDefault()}>
+                  <form onSubmit={handleAddTransaction}>
                     <label>Description</label>
-                    <input type="text" placeholder="e.g. Grocery shopping" />
+                    <input
+                        type="text"
+                        placeholder="e.g. Grocery shopping"
+                        value={description}
+                        onChange={e => setDescription(e.target.value)}
+                        required
+                    />
 
                     <label>Amount (€)</label>
-                    <input type="number" min="0.01" step="0.01" placeholder="0.00" />
+                    <input
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        placeholder="0.00"
+                        value={amount}
+                        onChange={e => setAmount(e.target.value)}
+                        required
+                    />
 
                     <label>Type</label>
-                    <select>
+                    <select
+                        value={type}
+                        onChange={e => setType(e.target.value as 'INCOME' | 'EXPENSE')}
+                    >
                       <option value="EXPENSE">Expense</option>
                       <option value="INCOME">Income</option>
                     </select>
 
                     <label>Category</label>
-                    <select>
+                    <select value={category} onChange={e => setCategory(e.target.value)}>
                       <option value="FOOD">Food</option>
                       <option value="HOUSING">Housing</option>
                       <option value="TRANSPORT">Transport</option>
@@ -191,18 +329,35 @@ function App()
                     </select>
 
                     <label>Date</label>
-                    <input type="date" />
+                    <input
+                        type="date"
+                        value={date}
+                        onChange={e => setDate(e.target.value)}
+                        required
+                    />
+
+                    {formError && <p className="expense">{formError}</p>}
 
                     <div className="modal-actions">
                       <button
                           type="button"
                           className="cancel-button"
                           onClick={() => setShowAddForm(false)}
+                          disabled={saving}
                       >
                         Cancel
                       </button>
-                      <button type="submit" className="add-button">
-                        Save transaction
+
+                      <button
+                          type="submit"
+                          className="add-button"
+                          disabled={saving}
+                      >
+                        {saving
+                            ? 'Saving...'
+                            : editingId !== null
+                                ? 'Save changes'
+                                : 'Save transaction'}
                       </button>
                     </div>
                   </form>
