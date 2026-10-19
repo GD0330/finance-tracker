@@ -30,6 +30,9 @@ function App()
   const [saving, setSaving] = useState(false)
   const [formError, setFormError] = useState('')
   const [editingId, setEditingId] = useState<number | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [typeFilter, setTypeFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL')
+  const [sortBy, setSortBy] = useState('newest')
 
   useEffect(() => {
     async function loadTransactions() {
@@ -154,6 +157,35 @@ function App()
     setFormError('')
     setShowAddForm(true)
   }
+  const filteredTransactions = transactions
+      .filter(transaction => {
+        const matchesSearch = transaction.description
+            .toLowerCase()
+            .includes(searchQuery.toLowerCase())
+
+        const matchesType =
+            typeFilter === 'ALL' || transaction.type === typeFilter
+
+        return matchesSearch && matchesType
+      })
+      .sort((a, b) => {
+        switch (sortBy) {
+          case 'newest':
+            return b.date.localeCompare(a.date)
+
+          case 'oldest':
+            return a.date.localeCompare(b.date)
+
+          case 'highest':
+            return b.amount - a.amount
+
+          case 'lowest':
+            return a.amount - b.amount
+
+          default:
+            return 0
+        }
+      })
 
   return (
       <div className="app">
@@ -231,6 +263,35 @@ function App()
                 <p className="status-message expense">{error}</p>
             )}
 
+            <div className="table-tools">
+              <input
+                  type="text"
+                  placeholder="Search transactions..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+              />
+
+              <select
+                  value={typeFilter}
+                  onChange={e =>
+                      setTypeFilter(e.target.value as 'ALL' | 'INCOME' | 'EXPENSE')
+                  }
+              >
+                <option value="ALL">All transactions</option>
+                <option value="INCOME">Income only</option>
+                <option value="EXPENSE">Expenses only</option>
+              </select>
+              <select
+                  value={sortBy}
+                  onChange={e => setSortBy(e.target.value)}
+              >
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
+                <option value="highest">Highest amount</option>
+                <option value="lowest">Lowest amount</option>
+              </select>
+            </div>
+
             <div className="table-scroll">
               <table>
                 <thead>
@@ -243,7 +304,7 @@ function App()
                 </tr>
                 </thead>
                 <tbody>
-                {transactions.map(transaction => (
+                {filteredTransactions.map(transaction => (
                     <tr key={transaction.id}>
                       <td className="description">{transaction.description}</td>
                       <td><span className="category">{transaction.category}</span></td>
