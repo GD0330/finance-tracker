@@ -415,3 +415,113 @@ td {
 .recharts-tooltip-label {
   color: #ffffff !important;
 }
+.report-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.report-stat-card {
+  background: #192130;
+  border: 1px solid #283346;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.report-stat-card p {
+  color: #94a3b8;
+  font-size: 14px;
+  margin: 0 0 12px;
+}
+
+.report-stat-card h2 {
+  color: #f8fafc;
+  font-size: 26px;
+  margin: 0 0 10px;
+}
+
+.report-stat-card span {
+  color: #64748b;
+  font-size: 12px;
+}
+
+@media (max-width: 1100px) {
+  .report-stats {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 600px) {
+  .report-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+.report-filters {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.report-filters label {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.report-filters input {
+  background: #192130;
+  color: #f8fafc;
+  border: 1px solid #283346;
+  border-radius: 8px;
+  padding: 10px 12px;
+  color-scheme: dark;
+}
+
+.spending-chart {
+  margin-top: 32px;
+  padding: 24px;
+  background: #192130;
+  border: 1px solid #283346;
+  border-radius: 14px;
+}
+
+.spending-chart h3 {
+  color: #f8fafc;
+  margin: 0 0 8px;
+}
+
+.spending-chart p {
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.reports-charts {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 20px;
+  align-items: stretch;
+  margin-top: 32px;
+}
+
+.monthly-chart,
+.spending-chart {
+  min-width: 0;
+  background: #192130;
+  border: 1px solid #283346;
+  border-radius: 14px;
+  padding: 24px;
+}
+
+.spending-chart {
+  margin-top: 0;
+}
+
+/* Responsive layout */
+@media (max-width: 1100px) {
+  .reports-charts {
+    grid-template-columns: 1fr;
+  }
+}

@@ -9,6 +9,9 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts'
 
 interface Transaction {
@@ -29,6 +32,16 @@ const money = (amount: number) =>
 function App()
 {
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const totalIncome = transactions
+      .filter(t => t.type === 'INCOME')
+      .reduce((sum, t) => sum + Number(t.amount), 0)
+
+  const totalExpenses = transactions
+      .filter(t => t.type === 'EXPENSE')
+      .reduce((sum, t) => sum + Number(t.amount), 0)
+
+
+
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showAddForm, setShowAddForm] = useState(false)
@@ -44,6 +57,10 @@ function App()
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL')
   const [sortBy, setSortBy] = useState('newest')
   const [activePage, setActivePage] = useState<'overview' | 'reports'>('overview')
+  const [selectedMonth, setSelectedMonth] = useState(
+      new Date().toISOString().slice(0, 7)
+  )
+
 
   useEffect(() => {
     async function loadTransactions() {
@@ -66,15 +83,40 @@ function App()
     loadTransactions()
   }, [])
 
-  const totalIncome = transactions
-      .filter(t => t.type === 'INCOME')
-      .reduce((sum, t) => sum + t.amount, 0)
-
-  const totalExpenses = transactions
-      .filter(t => t.type === 'EXPENSE')
-      .reduce((sum, t) => sum + t.amount, 0)
 
   const balance = totalIncome - totalExpenses
+
+  const monthlyTransactions = transactions.filter(t =>
+      t.date.startsWith(selectedMonth)
+  )
+
+  const monthlyIncome = monthlyTransactions
+      .filter(t => t.type === 'INCOME')
+      .reduce((sum, t) => sum + Number(t.amount), 0)
+
+  const monthlyExpenses = monthlyTransactions
+      .filter(t => t.type === 'EXPENSE')
+      .reduce((sum, t) => sum + Number(t.amount), 0)
+
+  const monthlySavings = monthlyIncome - monthlyExpenses
+
+  const monthlySavingsRate = monthlyIncome > 0
+      ? (monthlySavings / monthlyIncome) * 100
+      : 0
+
+  const spendingByCategory = Object.entries(
+      monthlyTransactions
+          .filter(t => t.type === 'EXPENSE')
+          .reduce<Record<string, number>>((totals, t) => {
+            totals[t.category] =
+                (totals[t.category] || 0) + Number(t.amount)
+
+            return totals
+          }, {})
+  ).map(([category, amount]) => ({
+    category,
+    amount
+  }))
 
   async function handleAddTransaction(e: React.SubmitEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -223,6 +265,10 @@ function App()
         return acc
       }, {})
   ).sort((a, b) => a.month.localeCompare(b.month))
+
+  const selectedMonthChartData = monthlyData.filter(
+      item => item.month === selectedMonth
+  )
 
   return (
       <div className="app">
@@ -394,6 +440,45 @@ function App()
                   </div>
                 </div>
 
+                <div className="report-filters">
+                  <label htmlFor="report-month">Select Month</label>
+
+                  <input
+                      id="report-month"
+                      type="month"
+                      value={selectedMonth}
+                      onChange={e => setSelectedMonth(e.target.value)}
+                  />
+                </div>
+
+                <div className="report-stats">
+                  <div className="report-stat-card">
+                    <p>Total Income</p>
+                    <h2>€{monthlyIncome.toFixed(2)}</h2>
+                    <span>Money earned</span>
+                  </div>
+
+                  <div className="report-stat-card">
+                    <p>Total Expenses</p>
+                    <h2>€{monthlyExpenses.toFixed(2)}</h2>
+                    <span>Money spent</span>
+                  </div>
+
+                  <div className="report-stat-card">
+                    <p>Net Savings</p>
+                    <h2>€{monthlySavings.toFixed(2)}</h2>
+                    <span>Income minus expenses</span>
+                  </div>
+
+                  <div className="report-stat-card">
+                    <p>Savings Rate</p>
+                    <h2>{monthlySavingsRate.toFixed(1)}%</h2>
+                    <span>Percentage of income saved</span>
+                  </div>
+                </div>
+
+                <div className="reports-charts">
+
                 <div className="reports-chart">
                   <h3>Monthly income vs expenses</h3>
                   <p>Compare how much you earn and spend each month.</p>
@@ -403,12 +488,16 @@ function App()
                   ) : (
                       <ResponsiveContainer width="100%" height={350}>
                         <BarChart
-                            data={monthlyData}
-                            margin={{ top: 20, right: 20, left: 0, bottom: 5 }}
+                            data={selectedMonthChartData}
+                            margin={{ top: 25, right: 30, left: 10, bottom: 10 }}
+                            barGap={12}
+                            barCategoryGap="35%"
                         >
+
                           <CartesianGrid
-                              strokeDasharray="3 3"
+                              strokeDasharray="4 4"
                               stroke="#2b3648"
+                              strokeOpacity={0.45}
                               vertical={false}
                           />
 
@@ -435,21 +524,63 @@ function App()
                           <Legend />
 
                           <Bar
-                              dataKey="income"
-                              name="Income"
-                              fill="#56d6a0"
-                              radius={[6, 6, 0, 0]}
+                              dataKey="expenses"
+                              name="Expenses"
+                              fill="#fb7185"
+                              radius={[8, 8, 0, 0]}
+                              maxBarSize={85}
                           />
 
                           <Bar
-                              dataKey="expenses"
-                              name="Expenses"
-                              fill="#f58c91"
-                              radius={[6, 6, 0, 0]}
+                              dataKey="income"
+                              name="Income"
+                              fill="#4fd1a1"
+                              radius={[8, 8, 0, 0]}
+                              maxBarSize={85}
                           />
                         </BarChart>
                       </ResponsiveContainer>
                   )}
+                </div>
+
+                <div className="spending-chart">
+                  <h3>Spending by Category</h3>
+                  <p>See where your money goes each month.</p>
+
+                  {spendingByCategory.length > 0 ? (
+                      <ResponsiveContainer width="100%" height={350}>
+                        <PieChart>
+                        <Pie
+                            data={spendingByCategory}
+                            dataKey="amount"
+                            nameKey="category"
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={70}
+                            outerRadius={110}
+                        >
+                          {spendingByCategory.map((entry, index) => (
+                              <Cell
+                                  key={entry.category}
+                                  fill={[
+                                    '#51d4a1',
+                                    '#60a5fa',
+                                    '#f59e0b',
+                                    '#f472b6',
+                                    '#a78bfa',
+                                    '#fb7185'
+                                  ][index % 6]}
+                              />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                      </ResponsiveContainer>
+                  ) : (
+                      <p>No expenses for this month.</p>
+                  )}
+                </div>
                 </div>
               </section>
           )}
