@@ -8,6 +8,8 @@ public enum Category {
     HEALTH,
     SHOPPING,
     SALARY,
-    OTHER,
-    GIFT
+    GIFT,
+    START,
+    GAME,
+    OTHER
 }
