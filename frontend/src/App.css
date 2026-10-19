@@ -332,3 +332,86 @@ td {
 .table-tools input::placeholder {
   color: #778397;
 }
+
+.sidebar .nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+
+  background: transparent;
+  color: #8b9bb3;
+  border: none;
+  border-radius: 10px;
+
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+/* Hover effect */
+.sidebar .nav-item:hover {
+  background: #1e2b3d;
+  color: #ffffff;
+}
+
+/* Currently selected page */
+.sidebar .nav-item.active {
+  background: #1b3b35;
+  color: #56d6a0;
+}
+
+/* Remove default browser focus styling */
+.sidebar .nav-item:focus {
+  outline: none;
+}
+
+/* Keyboard accessibility */
+.sidebar .nav-item:focus-visible {
+  outline: 2px solid #56d6a0;
+  outline-offset: 2px;
+}
+
+.reports-placeholder {
+  padding: 50px 24px;
+  text-align: center;
+  color: #a6b3c5;
+}
+
+.reports-placeholder h3 {
+  color: #ffffff;
+  margin-bottom: 10px;
+}
+
+.reports-chart {
+  padding: 24px;
+}
+
+.reports-chart h3 {
+  color: #ffffff;
+  font-size: 18px;
+  margin: 0 0 8px;
+}
+
+.reports-chart p {
+  color: #94a3b8;
+  font-size: 14px;
+  margin-bottom: 30px;
+}
+
+.reports-chart .recharts-legend-item-text {
+  color: #a6b3c5 !important;
+}
+
+.recharts-default-tooltip {
+  background-color: #171f2d !important;
+  border: 1px solid #354258 !important;
+  border-radius: 8px !important;
+}
+
+.recharts-tooltip-label {
+  color: #ffffff !important;
+}

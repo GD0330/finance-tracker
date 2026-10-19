@@ -1,5 +1,15 @@
 import './App.css'
 import { useEffect, useState } from 'react'
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts'
 
 interface Transaction {
   id: number
@@ -33,6 +43,7 @@ function App()
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState<'ALL' | 'INCOME' | 'EXPENSE'>('ALL')
   const [sortBy, setSortBy] = useState('newest')
+  const [activePage, setActivePage] = useState<'overview' | 'reports'>('overview')
 
   useEffect(() => {
     async function loadTransactions() {
@@ -187,6 +198,32 @@ function App()
         }
       })
 
+  const monthlyData = Object.values(
+      transactions.reduce<Record<string, {
+        month: string
+        income: number
+        expenses: number
+      }>>((acc, transaction) => {
+        const month = transaction.date.slice(0, 7)
+
+        if (!acc[month]) {
+          acc[month] = {
+            month,
+            income: 0,
+            expenses: 0,
+          }
+        }
+
+        if (transaction.type === 'INCOME') {
+          acc[month].income += transaction.amount
+        } else {
+          acc[month].expenses += transaction.amount
+        }
+
+        return acc
+      }, {})
+  ).sort((a, b) => a.month.localeCompare(b.month))
+
   return (
       <div className="app">
         <aside className="sidebar">
@@ -194,9 +231,19 @@ function App()
 
           <div className="nav-label">WORKSPACE</div>
           <nav>
-            <div className="nav-item active">▦ <span>Overview</span></div>
-            <div className="nav-item">⇄ <span>Transactions</span></div>
-            <div className="nav-item">▥ <span>Reports</span></div>
+            <button
+                className={`nav-item ${activePage === 'overview' ? 'active' : ''}`}
+                onClick={() => setActivePage('overview')}
+            >
+              ▦ <span>Overview</span>
+            </button>
+
+            <button
+                className={`nav-item ${activePage === 'reports' ? 'active' : ''}`}
+                onClick={() => setActivePage('reports')}
+            >
+              ▥ <span>Reports</span>
+            </button>
           </nav>
 
           <div className="sidebar-bottom">Finance Tracker v1.0</div>
@@ -206,11 +253,14 @@ function App()
           <header className="header">
             <div>
               <p className="eyebrow">FINANCIAL DASHBOARD</p>
-              <h1>Overview</h1>
+              <h1>{activePage === 'overview' ? 'Overview' : 'Reports'}</h1>
               <p className="subtitle">Keep track of your money in one place.</p>
             </div>
             <div className="avatar">FT</div>
           </header>
+
+          {activePage === 'overview' ? (
+              <>
 
           <section className="stats">
             <div className="stat-card balance">
@@ -333,6 +383,77 @@ function App()
               </table>
             </div>
           </section>
+
+              </>
+          ) : (
+              <section className="table-card">
+                <div className="table-header">
+                  <div>
+                    <h2>Financial reports</h2>
+                    <p>Understand your income, expenses, and spending habits.</p>
+                  </div>
+                </div>
+
+                <div className="reports-chart">
+                  <h3>Monthly income vs expenses</h3>
+                  <p>Compare how much you earn and spend each month.</p>
+
+                  {monthlyData.length === 0 ? (
+                      <p>No transactions available yet.</p>
+                  ) : (
+                      <ResponsiveContainer width="100%" height={350}>
+                        <BarChart
+                            data={monthlyData}
+                            margin={{ top: 20, right: 20, left: 0, bottom: 5 }}
+                        >
+                          <CartesianGrid
+                              strokeDasharray="3 3"
+                              stroke="#2b3648"
+                              vertical={false}
+                          />
+
+                          <XAxis dataKey="month" stroke="#94a3b8" />
+                          <YAxis stroke="#94a3b8" />
+
+                          <Tooltip
+                              cursor={{ fill: 'rgba(86, 214, 160, 0.06)' }}
+                              formatter={(value) => money(Number(value ?? 0))}
+                              contentStyle={{
+                                backgroundColor: '#171f2d',
+                                border: '1px solid #354258',
+                                borderRadius: '8px',
+                                color: '#ffffff',
+                              }}
+                              labelStyle={{
+                                color: '#ffffff',
+                              }}
+                              itemStyle={{
+                                color: '#ffffff',
+                              }}
+                          />
+
+                          <Legend />
+
+                          <Bar
+                              dataKey="income"
+                              name="Income"
+                              fill="#56d6a0"
+                              radius={[6, 6, 0, 0]}
+                          />
+
+                          <Bar
+                              dataKey="expenses"
+                              name="Expenses"
+                              fill="#f58c91"
+                              radius={[6, 6, 0, 0]}
+                          />
+                        </BarChart>
+                      </ResponsiveContainer>
+                  )}
+                </div>
+              </section>
+          )}
+
           {showAddForm && (
               <div className="modal-overlay">
                 <div className="modal">
@@ -379,13 +500,15 @@ function App()
                     <label>Category</label>
                     <select value={category} onChange={e => setCategory(e.target.value)}>
                       <option value="FOOD">Food</option>
-                      <option value="HOUSING">Housing</option>
+                      <option value="RENT">Rent</option>
                       <option value="TRANSPORT">Transport</option>
                       <option value="ENTERTAINMENT">Entertainment</option>
                       <option value="HEALTH">Health</option>
                       <option value="SHOPPING">Shopping</option>
                       <option value="SALARY">Salary</option>
                       <option value="GIFT">Gift</option>
+                      <option value="START">Start</option>
+                      <option value="GAME">Game</option>
                       <option value="OTHER">Other</option>
                     </select>
 
