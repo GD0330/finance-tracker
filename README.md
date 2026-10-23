@@ -1,4 +1,4 @@
-# 💰 Finance Tracker
+# 💰 Finance Tracker - not ready yet :(
 
 A full-stack personal finance management application built with **Spring Boot, React, TypeScript, and PostgreSQL**.
 
