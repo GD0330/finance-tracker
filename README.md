@@ -1,80 +1,140 @@
-# Finance Tracker API
+# 💰 Finance Tracker
 
-A personal finance management REST API built with Java 21, Spring Boot, and PostgreSQL.
+A full-stack personal finance management application built with **Spring Boot, React, TypeScript, and PostgreSQL**.
 
-## Features
+Finance Tracker helps users manage their income and expenses, monitor their financial balance, and analyze spending habits through an interactive dashboard.
 
-- Create, view, update, and delete financial transactions
-- Categorize income and expenses
-- Calculate total income, expenses, and balance
-- Validate incoming transaction data
-- Return appropriate HTTP error responses
-- Automated unit and controller tests
+## ✨ Features
 
-## Tech Stack
+### 📊 Financial Dashboard
+- View total income, expenses, and current balance.
+- Add, edit, and delete transactions.
+- Search transactions by description.
+- Filter transactions by type.
+- Sort transactions.
+
+### 📈 Financial Reports
+- View monthly income, expenses, and net savings.
+- Calculate monthly savings rates.
+- Select a month to analyze financial activity.
+- Compare income and expenses using interactive bar charts.
+- Visualize spending by category using a donut chart.
+- Responsive chart layouts.
+
+### 💳 Transaction Management
+- Create income and expense transactions.
+- Assign categories to transactions.
+- Record transaction descriptions, amounts, and dates.
+- Validate transaction data.
+- Store transactions in a PostgreSQL database.
+
+## 🛠️ Tech Stack
+
+**Backend**
+- Java 21
+- Spring Boot
+- Spring Data JPA / Hibernate
+- Maven
+- REST API
+
+**Frontend**
+- React
+- TypeScript
+- Vite
+- Recharts
+- CSS
+
+**Database**
+- PostgreSQL
+
+**Development & Testing**
+- IntelliJ IDEA
+- Git & GitHub
+- JUnit
+- Mockito
+- GitHub Actions (CI)
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+Make sure you have installed:
 
 - Java 21
-- Spring Boot 4
-- Spring Data JPA / Hibernate
+- Node.js and npm
 - PostgreSQL
-- Maven
-- JUnit 5
-- Mockito
-- MockMvc
+- Git
 
-## API Endpoints
+### 1. Clone the Repository
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/transactions` | Retrieve all transactions |
-| POST | `/api/transactions` | Create a transaction |
-| PUT | `/api/transactions/{id}` | Update a transaction |
-| DELETE | `/api/transactions/{id}` | Delete a transaction |
-| GET | `/api/transactions/summary` | Retrieve financial summary |
-
-## Example Request
-
-POST `/api/transactions`
-
-```json
-{
-  "amount": 150.00,
-  "description": "Freelance payment",
-  "date": "2026-10-14",
-  "type": "INCOME",
-  "category": "SALARY"
-}
+```bash
+git clone https://github.com/GD0330/finance-tracker.git
+cd finance-tracker
 ```
 
-## Running Locally
+### 2. Configure the Database
 
-Requirements: Java 21 and PostgreSQL.
+Create a PostgreSQL database named `finance_tracker`.
 
-1. Create a PostgreSQL database named `finance_tracker`.
-2. Configure your database username in `application.properties`.
-3. Set the `DB_PASSWORD` environment variable to your PostgreSQL password.
-4. Run the application:
+Configure your Spring Boot database connection in `application.properties` or `application.yml`.
 
-```powershell
-.\mvnw.cmd spring-boot:run
+The backend expects the database password through the `DB_PASSWORD` environment variable.
+
+**Note:** The database schema and its category constraints must be compatible with the current backend model.
+
+### 3. Start the Backend
+
+Run `FinanceTrackerApplication` from IntelliJ IDEA, or use the Maven wrapper from the project root:
+
+```bash
+./mvnw spring-boot:run
 ```
 
-The API will be available at `http://localhost:8080`.
+The backend runs at:
 
-## Running Tests
+`http://localhost:8080`
 
-```powershell
-.\mvnw.cmd clean test
+### 4. Start the Frontend
+
+Open a second terminal:
+
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-The project includes service unit tests using Mockito and controller tests using MockMvc.
+Open:
 
-## Future Improvements
+`http://localhost:5173`
 
-- User authentication and authorization
-- Transaction filtering and pagination
-- Monthly spending reports
-- Budget management
-- Frontend dashboard
-- Docker support
-- CI/CD with GitHub Actions
+## 🧪 Testing
+
+The backend includes automated tests for application functionality.
+
+Run the tests using:
+
+```bash
+./mvnw test
+```
+
+GitHub Actions is configured to run backend checks automatically.
+
+## 📸 Screenshots
+
+*Screenshots of the Overview and Reports dashboards will be added here.*
+
+## 🗺️ Planned Improvements
+
+- Monthly budget management.
+- Improved financial insights.
+- Export transactions and reports.
+- More advanced filtering and analytics.
+- Easier local installation and deployment.
+
+## 👨‍💻 About the Project
+
+This project was developed as a personal learning and portfolio project to gain practical experience with full-stack development.
+
+It covers REST API development, database integration, frontend state management, financial data visualization, automated testing, and version control.
+
